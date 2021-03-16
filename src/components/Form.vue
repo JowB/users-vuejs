@@ -1,4 +1,5 @@
 <template>
+    <!-- Template pour la création d'un utilisateur -->
     <template v-if="usage === 'create'">
         <div class="container">
             <label for="firstnameC">Prénom</label>
@@ -23,27 +24,30 @@
             <button type="submit" class="btn btn-success" v-on:click="createUser">Créer</button>
         </div>
     </template>
+
+    <!-- Template pour la modification d'un utilisateur -->
     <template v-if="usage === 'edit'">
         <div class="container">
             <label for="firstname">Prénom</label>
-            <input :value="user.firstName" type="text" class="form-control" id="firstname"
+            <input v-model="updateUser.firstName" type="text" class="form-control" id="firstname"
                    placeholder="Insérez votre prénom">
             <label for="lastname">Nom</label>
-            <input :value="user.lastName" type="text" class="form-control" id="lastname"
+            <input v-model="updateUser.lastName" type="text" class="form-control" id="lastname"
                    placeholder="Insérez votre nom">
             <label for="email">Email</label>
-            <input :value="user.email" type="email" class="form-control" id="email" placeholder="Insérez votre email">
+            <input v-model="updateUser.email" type="email" class="form-control" id="email"
+                   placeholder="Insérez votre email">
             <label for="birthdate">Date de naissance</label>
-            <input :value="user.birthDate" type="date" class="form-control" id="birthdate">
+            <input v-model="updateUser.birthDate" type="date" class="form-control" id="birthdate">
             <label for="avatarUrl">Avatar URL</label>
-            <input :value="user.avatarUrl" type="url" class="form-control" id="avatarUrl"
+            <input v-model="updateUser.avatarUrl" type="url" class="form-control" id="avatarUrl"
                    placeholder="Insérez l'url de votre avatar">
             <label for="gender">Genre</label>
-            <select class="form-select" id="gender" :value="user.gender">
+            <select class="form-select" id="gender" v-model="updateUser.gender">
                 <option value="male">Homme</option>
                 <option value="female">Femmme</option>
             </select>
-            <button type="submit" class="btn btn-success">Editer</button>
+            <button type="submit" class="btn btn-success" v-on:click="editUser">Editer</button>
         </div>
     </template>
 </template>
@@ -53,32 +57,35 @@ import axios from "axios";
 
 export default {
     name: "Form",
-    data() {
-        return {
-            newUser: {}
-        }
-    },
     props: {
         user: Object,
         usage: String
     },
+    data() {
+        return {
+            newUser: {},
+            updateUser: {}
+        }
+    },
     methods: {
+        // Créer un utilisateur
         createUser() {
-            console.log(this.newUser);
             axios
                 .post('http://localhost:6929/users', this.newUser)
                 .then(response => console.log(response))
         },
+        // Modifier un utilisateur
         editUser() {
-
-        },
-        getUserById() {
             axios
-                .get()
+                .put(`http://localhost:6929/users/${this.updateUser.id}`, this.updateUser)
+                .then(response => console.log(response))
         }
     },
-    created() {
-        console.log(this.usage);
+    watch: {
+        // Permet d'utiliser le v-model sur le data
+        user() {
+            this.updateUser = this.user;
+        }
     }
 }
 </script>
