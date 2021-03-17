@@ -13,9 +13,8 @@
                    placeholder="Insérez votre email">
             <label for="birthdateC">Date de naissance</label>
             <input v-model="newUser.birthDate" type="date" class="form-control" id="birthdateC">
-            <label for="avatarUrlC">Avatar URL</label>
-            <input v-model="newUser.avatarUrl" type="url" class="form-control" id="avatarUrlC"
-                   placeholder="Insérez l'url de votre avatar">
+            <label for="avatarUrlC">Photo</label>
+            <input id="avatarUrlC" class="form-control" type="file" @change="onFileChange"/>
             <label for="genderC">Genre</label>
             <select class="form-select" id="genderC" v-model="newUser.gender">
                 <option value="male">Homme</option>
@@ -28,6 +27,9 @@
     <!-- Template pour la modification d'un utilisateur -->
     <template v-if="usage === 'edit'">
         <div class="container">
+            <div class="img-edit">
+                <img :src="`http://localhost:6929${updateUser.avatarUrl}`">
+            </div>
             <label for="firstname">Prénom</label>
             <input v-model="updateUser.firstName" type="text" class="form-control" id="firstname"
                    placeholder="Insérez votre prénom">
@@ -39,9 +41,8 @@
                    placeholder="Insérez votre email">
             <label for="birthdate">Date de naissance</label>
             <input v-model="updateUser.birthDate" type="date" class="form-control" id="birthdate">
-            <label for="avatarUrl">Avatar URL</label>
-            <input v-model="updateUser.avatarUrl" type="url" class="form-control" id="avatarUrl"
-                   placeholder="Insérez l'url de votre avatar">
+            <label for="avatarUrl">Photo</label>
+            <input id="avatarUrl" class="form-control" type="file" @change="onFileChange"/>
             <label for="gender">Genre</label>
             <select class="form-select" id="gender" v-model="updateUser.gender">
                 <option value="male">Homme</option>
@@ -64,21 +65,51 @@ export default {
     data() {
         return {
             newUser: {},
-            updateUser: {}
+            updateUser: {},
+            selectedFile: ''
         }
     },
     methods: {
+        onFileChange(e) {
+            this.selectedFile = e.target.files[0];
+        },
         // Créer un utilisateur
         createUser() {
+            const formData = new FormData();
+            formData.append('file', this.selectedFile);
+            formData.append('firstName', this.newUser.firstName);
+            formData.append('lastName', this.newUser.lastName);
+            formData.append('email', this.newUser.email);
+            formData.append('birthDate', this.newUser.birthDate);
+            formData.append('gender', this.newUser.gender);
+
             axios
-                .post('http://localhost:6929/users', this.newUser)
-                .then(response => console.log(response))
+                .post('http://localhost:6929/users', formData)
+                .then((response) => {
+                    console.log(response);
+                    this.$toast.success("Création de l'utilisateur réussie ! Vous allez être redirigé.", {
+                        position: 'bottom'
+                    });
+                    setTimeout(() => {
+                        this.$router.go(-1);
+                    }, 4000);
+                })
+                .catch(() => {
+                    this.$toast.error("Cet email est déjà utilisé", {position: 'bottom'});
+                })
         },
         // Modifier un utilisateur
         editUser() {
             axios
                 .put(`http://localhost:6929/users/${this.updateUser.id}`, this.updateUser)
-                .then(response => console.log(response))
+                .then(() => {
+                    this.$toast.success("Modification de l'utilisateur réussie ! Vous allez être redirigé.", {
+                        position: 'bottom'
+                    });
+                    setTimeout(() => {
+                        this.$router.go(-1);
+                    }, 4000);
+                })
         }
     },
     watch: {
@@ -97,5 +128,14 @@ export default {
 
 input, select {
     margin-bottom: 20px;
+}
+
+.img-edit {
+    margin: auto;
+    width: 400px;
+}
+
+img {
+    width: 100%;
 }
 </style>
